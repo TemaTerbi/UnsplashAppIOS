@@ -22,6 +22,7 @@ class MainPostCell: UITableViewCell {
         let image = UIImageView()
         image.clipsToBounds = true
         image.translatesAutoresizingMaskIntoConstraints = false
+        image.contentMode = .scaleAspectFill
         return image
     }()
     
@@ -45,6 +46,7 @@ class MainPostCell: UITableViewCell {
     
     private func addSubView() {
         self.contentView.addSubview(mainView)
+        self.mainView.addSubview(postImage)
     }
     
     private func setupConstraints() {
@@ -52,8 +54,24 @@ class MainPostCell: UITableViewCell {
             mainView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             mainView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             mainView.heightAnchor.constraint(equalToConstant: 320),
+            
+            postImage.topAnchor.constraint(equalTo: mainView.topAnchor),
+            postImage.bottomAnchor.constraint(equalTo: mainView.bottomAnchor),
+            postImage.leadingAnchor.constraint(equalTo: mainView.leadingAnchor),
+            postImage.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
         ]
         
         NSLayoutConstraint.activate(constraints)
+    }
+    
+    func setupCell(_ data: Photos) {
+        let url = URL(string: data.urls?.small ?? "")
+        guard let url = url else { return }
+        let data = try? Data(contentsOf: url)
+        guard let data = data else { return }
+        
+        DispatchQueue.main.async {
+            self.postImage.image = UIImage(data: data)
+        }
     }
 }

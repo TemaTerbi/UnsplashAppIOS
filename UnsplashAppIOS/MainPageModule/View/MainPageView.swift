@@ -10,6 +10,8 @@ import UIKit
 final class MainPageView: UIViewController {
     
     let tableView = UITableView.init(frame: .zero)
+    let viewModel = MainPageViewModel()
+    var photos: [Photos] = []
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -25,6 +27,10 @@ final class MainPageView: UIViewController {
         updateLayout(with: self.view.frame.size)
         addSubView()
         setupTable()
+        viewModel.getRandomPhotos()
+        bindingsViewModel()
+        
+        UserDefaults.standard.set(1, forKey: "page")
     }
     
     private func addSubView() {
@@ -41,11 +47,29 @@ final class MainPageView: UIViewController {
     private func updateLayout(with size: CGSize) {
         self.tableView.frame = CGRect.init(origin: .zero, size: size)
     }
+    
+    private func bindingsViewModel() {
+        viewModel.photos.bind { photos in
+            self.photos = photos
+            self.tableView.reloadData()
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let currentOffset = scrollView.contentOffset.y
+        let maximumOffset = scrollView.contentSize.height - scrollView.frame.size.height
+        let deltaOffset = maximumOffset - currentOffset
+        
+        if deltaOffset <= 0 {
+            viewModel.getRandomPhotos()
+            self.tableView.setContentOffset(.zero, animated: true)
+        }
+    }
 }
 
 extension MainPageView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return photos.count
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -55,6 +79,8 @@ extension MainPageView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MainPostCell
         cell.selectionStyle = .none
+        let photos = self.photos[indexPath.row]
+        cell.setupCell(photos)
         return cell
     }
 }
