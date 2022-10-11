@@ -15,14 +15,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let _ = (scene as? UIWindowScene) else { return }
         setupWindow(scene: scene)
         
-        UserDefaults.standard.set(true, forKey: "onceStart")
+        let favData = UserDefaults.standard.data(forKey: "favPhotos")
+        guard let favData = favData else { return }
+        let favArray = try! JSONDecoder().decode([Photos].self, from: favData)
         
-        let isFirstStart = UserDefaults.standard.bool(forKey: "onceStart")
-        if isFirstStart {
+        if favArray.isEmpty {
             var photosArray: [Photos] = []
             let photosArrayData = try! JSONEncoder().encode(photosArray)
             UserDefaults.standard.set(photosArrayData, forKey: "favPhotos")
             NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
+            UserDefaults.standard.set(false, forKey: "onceStart")
         }
     }
     
