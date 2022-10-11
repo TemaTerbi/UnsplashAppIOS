@@ -83,4 +83,17 @@ extension MainPageView: UITableViewDataSource, UITableViewDelegate {
         cell.setupCell(photos)
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let vc = DetailScreenView()
+        let photosInfo = photos[indexPath.row]
+        vc.userName = photosInfo.user?.username ?? ""
+        vc.date = photosInfo.created_at ?? ""
+        vc.locate = photosInfo.user?.location ?? "Не указано"
+        vc.countOfDownloads = photosInfo.downloads ?? 0
+        let id = photosInfo.id
+        UserDefaults.standard.set(id, forKey: "idPhoto")
+        vc.url = photosInfo.urls?.small ?? ""
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
 }

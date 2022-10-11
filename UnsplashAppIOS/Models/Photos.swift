@@ -12,6 +12,7 @@ class Photos: Codable {
     var user: User?
     var downloads: Int?
     var created_at: String?
+    var id: String?
 }
 
 class Image: Codable {
