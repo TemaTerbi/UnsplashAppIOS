@@ -9,9 +9,19 @@ import UIKit
 
 final class MainPageView: UIViewController {
     
-    let tableView = UITableView.init(frame: .zero)
-    let viewModel = MainPageViewModel()
-    var photos: [Photos] = []
+    private let tableView = UITableView.init(frame: .zero)
+    private let viewModel = MainPageViewModel()
+    private var photos: [Photos] = []
+    private var filteredPhotos: [Photos] = []
+    private let searchController = UISearchController(searchResultsController: nil)
+    
+    private var isSearhcBarIsEmpty: Bool {
+        return searchController.searchBar.text?.isEmpty ?? true
+    }
+    
+    var isFiltering: Bool {
+        return searchController.isActive && !isSearhcBarIsEmpty
+    }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -56,6 +66,11 @@ final class MainPageView: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.register(MainPostCell.self, forCellReuseIdentifier: "cell")
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Введите имя автора"
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
     }
     
     private func updateLayout(with size: CGSize) {
@@ -75,15 +90,27 @@ final class MainPageView: UIViewController {
         let deltaOffset = maximumOffset - currentOffset
         
         if deltaOffset <= 0 {
-//            self.tableView.setContentOffset(.zero, animated: true)
+            //            self.tableView.setContentOffset(.zero, animated: true)
             viewModel.getMoreRandomPhotos()
         }
+    }
+    
+    private func filterContentForSearchText(_ searchText: String) {
+        filteredPhotos = photos.filter { (photo: Photos) -> Bool in
+            return photo.user?.username?.lowercased().contains(searchText.lowercased()) ?? false
+        }
+        
+        tableView.reloadData()
     }
 }
 
 extension MainPageView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return photos.count
+        if isFiltering {
+            return filteredPhotos.count
+        } else {
+            return photos.count
+        }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -93,23 +120,50 @@ extension MainPageView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MainPostCell
         cell.selectionStyle = .none
-        let photos = self.photos[indexPath.row]
-        cell.setupCell(photos)
+        if isFiltering {
+            let photos = self.filteredPhotos[indexPath.row]
+            cell.setupCell(photos)
+        } else {
+            let photos = self.photos[indexPath.row]
+            cell.setupCell(photos)
+        }
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let vc = DetailScreenView()
-        let photosInfo = photos[indexPath.row]
-        vc.userName = photosInfo.user?.username ?? ""
-        vc.date = photosInfo.created_at ?? ""
-        vc.locate = photosInfo.user?.location ?? "Не указано"
-        vc.countOfDownloads = photosInfo.downloads ?? 0
-        let id = photosInfo.id
-        UserDefaults.standard.set(id, forKey: "idPhoto")
-        vc.url = photosInfo.urls?.small ?? ""
-        vc.currentElement = photosInfo
-        vc.id = photosInfo.id ?? ""
-        self.navigationController?.pushViewController(vc, animated: true)
+        if isFiltering {
+            let vc = DetailScreenView()
+            let photosInfo = filteredPhotos[indexPath.row]
+            vc.userName = photosInfo.user?.username ?? ""
+            vc.date = photosInfo.created_at ?? ""
+            vc.locate = photosInfo.user?.location ?? "Не указано"
+            vc.countOfDownloads = photosInfo.downloads ?? 0
+            let id = photosInfo.id
+            UserDefaults.standard.set(id, forKey: "idPhoto")
+            vc.url = photosInfo.urls?.small ?? ""
+            vc.currentElement = photosInfo
+            vc.id = photosInfo.id ?? ""
+            self.navigationController?.pushViewController(vc, animated: true)
+        } else {
+            let vc = DetailScreenView()
+            let photosInfo = photos[indexPath.row]
+            vc.userName = photosInfo.user?.username ?? ""
+            vc.date = photosInfo.created_at ?? ""
+            vc.locate = photosInfo.user?.location ?? "Не указано"
+            vc.countOfDownloads = photosInfo.downloads ?? 0
+            let id = photosInfo.id
+            UserDefaults.standard.set(id, forKey: "idPhoto")
+            vc.url = photosInfo.urls?.small ?? ""
+            vc.currentElement = photosInfo
+            vc.id = photosInfo.id ?? ""
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+}
+
+extension MainPageView: UISearchResultsUpdating{
+    func updateSearchResults(for searchController: UISearchController) {
+        let searchBar = searchController.searchBar
+        filterContentForSearchText(searchBar.text ?? "")
     }
 }
