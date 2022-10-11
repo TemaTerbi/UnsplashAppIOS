@@ -61,8 +61,8 @@ final class MainPageView: UIViewController {
         let deltaOffset = maximumOffset - currentOffset
         
         if deltaOffset <= 0 {
-            viewModel.getRandomPhotos()
-            self.tableView.setContentOffset(.zero, animated: true)
+//            self.tableView.setContentOffset(.zero, animated: true)
+            viewModel.getMoreRandomPhotos()
         }
     }
 }

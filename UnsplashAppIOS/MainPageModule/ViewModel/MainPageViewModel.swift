@@ -23,4 +23,18 @@ final class MainPageViewModel {
             }
         }
     }
+    
+    func getMoreRandomPhotos() {
+        if !loadMoreStatus {
+            loadMoreStatus = true
+            self.page += 1
+            UserDefaults.standard.set(page, forKey: "page")
+            ApiManager.shared.getRandomPhotos { photos in
+                for el in photos {
+                    self.photos.value.append(el)
+                }
+                self.loadMoreStatus = false
+            }
+        }
+    }
 }
