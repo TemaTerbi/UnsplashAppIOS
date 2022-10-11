@@ -163,13 +163,11 @@ class DetailScreenView: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemIndigo
-        
-        checkInFavourite()
         
         addSubView()
         setupConstraints()
@@ -181,11 +179,11 @@ class DetailScreenView: UIViewController {
         }
         
         setPhoto()
-        setupFunction()
+        checkInFavourite()
     }
     
     private func setupFunction() {
-        self.isFav ? favouriteButton.addTarget(self, action: #selector(deleteFavourite), for: .touchUpInside) : favouriteButton.addTarget(self, action: #selector(addToFavourite), for: .touchUpInside)
+        self.isFav ? favouriteButton.addTarget(self, action: #selector(alertShow), for: .touchUpInside) : favouriteButton.addTarget(self, action: #selector(addToFavourite), for: .touchUpInside)
     }
     
     private func setPhoto() {
@@ -241,18 +239,23 @@ class DetailScreenView: UIViewController {
     private func checkInFavourite() {
         let favData = UserDefaults.standard.data(forKey: "favPhotos")
         guard let favData = favData else { return }
-        var favArray = try! JSONDecoder().decode([Photos].self, from: favData)
+        let favArray = try! JSONDecoder().decode([Photos].self, from: favData)
         
-        for el in favArray {
-            if el.id == currentElement?.id {
-                DispatchQueue.main.async {
+        if favArray.isEmpty {
+            DispatchQueue.main.async {
+                self.favouriteButton.setTitle("Добавить в избранное", for: .normal)
+                self.favouriteButton.backgroundColor = .systemGreen
+                self.isFav = false
+                self.setupFunction()
+            }
+        } else {
+            for el in favArray {
+                if el.id == currentElement?.id {
                     self.favouriteButton.setTitle("Удалить из избранного", for: .normal)
                     self.favouriteButton.backgroundColor = .systemRed
                     self.isFav = true
                     self.setupFunction()
-                }
-            } else {
-                DispatchQueue.main.async {
+                } else {
                     self.favouriteButton.setTitle("Добавить в избранное", for: .normal)
                     self.favouriteButton.backgroundColor = .systemGreen
                     self.isFav = false
@@ -260,6 +263,17 @@ class DetailScreenView: UIViewController {
                 }
             }
         }
+    }
+    
+    @objc private func alertShow() {
+        let alert = UIAlertController(title: "Удаление из избранного", message: "Вы действительно хотите удалить этот пост из избранного?", preferredStyle: .alert)
+        
+        let alertOk = UIAlertAction(title: "Ok", style: .destructive) { _ in
+            self.deleteFavourite()
+        }
+        
+        alert.addAction(alertOk)
+        self.present(alert, animated: true)
     }
     
     @objc private func addToFavourite() {
