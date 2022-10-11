@@ -14,6 +14,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let _ = (scene as? UIWindowScene) else { return }
         setupWindow(scene: scene)
+        
+        UserDefaults.standard.set(true, forKey: "onceStart")
+        
+        let isFirstStart = UserDefaults.standard.bool(forKey: "onceStart")
+        if isFirstStart {
+            var photosArray: [Photos] = []
+            let photosArrayData = try! JSONEncoder().encode(photosArray)
+            UserDefaults.standard.set(photosArrayData, forKey: "favPhotos")
+            NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
+        }
     }
     
     private func setupWindow(scene: UIScene) {
