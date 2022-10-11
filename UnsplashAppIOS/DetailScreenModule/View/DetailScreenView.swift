@@ -15,6 +15,8 @@ class DetailScreenView: UIViewController {
     var countOfDownloads = 0
     var url = ""
     
+    var currentElement: Photos?
+    
     let viewModel = DetaiScreenViewModel()
     
     private lazy var detailImage: UIImageView = {
@@ -157,9 +159,10 @@ class DetailScreenView: UIViewController {
         button.layer.cornerRadius = 25
         button.backgroundColor = .systemRed
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(addToFavourite), for: .touchUpInside)
         return button
     }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -225,5 +228,15 @@ class DetailScreenView: UIViewController {
         ]
         
         NSLayoutConstraint.activate(constraints)
+    }
+    
+    @objc private func addToFavourite() {
+        var favData = UserDefaults.standard.data(forKey: "favPhotos")
+        guard let favData = favData else { return }
+        var favArray = try! JSONDecoder().decode([Photos].self, from: favData)
+        favArray.append(currentElement!)
+        let favDataa = try! JSONEncoder().encode(favArray)
+        UserDefaults.standard.set(favDataa, forKey: "favPhotos")
+        NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
     }
 }

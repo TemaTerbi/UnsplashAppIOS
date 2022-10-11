@@ -94,6 +94,7 @@ extension MainPageView: UITableViewDataSource, UITableViewDelegate {
         let id = photosInfo.id
         UserDefaults.standard.set(id, forKey: "idPhoto")
         vc.url = photosInfo.urls?.small ?? ""
+        vc.currentElement = photosInfo
         self.navigationController?.pushViewController(vc, animated: true)
     }
 }

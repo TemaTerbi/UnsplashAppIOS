@@ -18,9 +18,37 @@ class FavouriteCell: UITableViewCell {
         return view
     }()
     
+    private lazy var userIcon: UIImageView = {
+        let image = UIImageView()
+        image.contentMode = .scaleAspectFill
+        image.image = UIImage(systemName: "person.fill")
+        image.clipsToBounds = true
+        image.tintColor = .white
+        image.translatesAutoresizingMaskIntoConstraints = false
+        return image
+    }()
+    
+    private lazy var userLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var userStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.addArrangedSubview(userIcon)
+        stackView.addArrangedSubview(userLabel)
+        stackView.spacing = 12
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
     private lazy var postImage: UIImageView = {
         let image = UIImageView()
         image.clipsToBounds = true
+        image.contentMode = .scaleAspectFill
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
@@ -45,6 +73,8 @@ class FavouriteCell: UITableViewCell {
     
     private func addSubView() {
         self.contentView.addSubview(mainView)
+        self.mainView.addSubview(postImage)
+        self.mainView.addSubview(userStackView)
     }
     
     private func setupConstraints() {
@@ -52,9 +82,31 @@ class FavouriteCell: UITableViewCell {
             mainView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             mainView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             mainView.heightAnchor.constraint(equalToConstant: 320),
+            
+            postImage.topAnchor.constraint(equalTo: mainView.topAnchor),
+            postImage.leadingAnchor.constraint(equalTo: mainView.leadingAnchor),
+            postImage.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
+            postImage.heightAnchor.constraint(equalTo: mainView.heightAnchor, multiplier: 0.5),
+            
+            userStackView.topAnchor.constraint(equalTo: postImage.bottomAnchor, constant: 65),
+            userStackView.leadingAnchor.constraint(equalTo: mainView.leadingAnchor, constant: 15),
+            userStackView.trailingAnchor.constraint(equalTo: mainView.trailingAnchor, constant: -15),
+            
+            userIcon.heightAnchor.constraint(equalToConstant: 40),
+            userIcon.widthAnchor.constraint(equalToConstant: 40),
         ]
         
         NSLayoutConstraint.activate(constraints)
+    }
+    
+    func setupCell(_ data: Photos) {
+        let url = URL(string: data.urls?.small ?? "")
+        guard let url = url else { return }
+        let dataPhoto = try? Data(contentsOf: url)
+        guard let dataPhoto = dataPhoto else { return }
+        
+        postImage.image = UIImage(data: dataPhoto)
+        userLabel.text = data.user?.username
     }
 }
 
