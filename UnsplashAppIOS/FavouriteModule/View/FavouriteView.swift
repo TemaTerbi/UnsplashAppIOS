@@ -92,10 +92,9 @@ extension FavouriteView: UITableViewDataSource, UITableViewDelegate {
         vc.date = photosInfo.created_at ?? ""
         vc.locate = photosInfo.user?.location ?? "Не указано"
         vc.countOfDownloads = photosInfo.downloads ?? 0
-        let id = photosInfo.id
-        UserDefaults.standard.set(id, forKey: "idPhoto")
         vc.url = photosInfo.urls?.small ?? ""
         vc.currentElement = photosInfo
+        vc.id = photosInfo.id ?? ""
         self.navigationController?.pushViewController(vc, animated: true)
     }
 }

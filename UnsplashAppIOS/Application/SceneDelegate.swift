@@ -20,7 +20,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let favArray = try! JSONDecoder().decode([Photos].self, from: favData)
         
         if favArray.isEmpty {
-            var photosArray: [Photos] = []
+            let photosArray: [Photos] = []
             let photosArrayData = try! JSONEncoder().encode(photosArray)
             UserDefaults.standard.set(photosArrayData, forKey: "favPhotos")
             NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
