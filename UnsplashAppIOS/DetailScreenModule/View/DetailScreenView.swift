@@ -17,6 +17,8 @@ class DetailScreenView: UIViewController {
     
     var currentElement: Photos?
     
+    var isFav = false
+    
     let viewModel = DetaiScreenViewModel()
     
     private lazy var detailImage: UIImageView = {
@@ -157,9 +159,8 @@ class DetailScreenView: UIViewController {
         let button = UIButton()
         button.setTitle("Добавить в избранное", for: .normal)
         button.layer.cornerRadius = 25
-        button.backgroundColor = .systemRed
+        button.backgroundColor = .systemGreen
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(addToFavourite), for: .touchUpInside)
         return button
     }()
 
@@ -167,6 +168,8 @@ class DetailScreenView: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .systemIndigo
+        
+        checkInFavourite()
         
         addSubView()
         setupConstraints()
@@ -178,6 +181,11 @@ class DetailScreenView: UIViewController {
         }
         
         setPhoto()
+        setupFunction()
+    }
+    
+    private func setupFunction() {
+        self.isFav ? favouriteButton.addTarget(self, action: #selector(deleteFavourite), for: .touchUpInside) : favouriteButton.addTarget(self, action: #selector(addToFavourite), for: .touchUpInside)
     }
     
     private func setPhoto() {
@@ -230,13 +238,51 @@ class DetailScreenView: UIViewController {
         NSLayoutConstraint.activate(constraints)
     }
     
+    private func checkInFavourite() {
+        let favData = UserDefaults.standard.data(forKey: "favPhotos")
+        guard let favData = favData else { return }
+        var favArray = try! JSONDecoder().decode([Photos].self, from: favData)
+        
+        for el in favArray {
+            if el.id == currentElement?.id {
+                DispatchQueue.main.async {
+                    self.favouriteButton.setTitle("Удалить из избранного", for: .normal)
+                    self.favouriteButton.backgroundColor = .systemRed
+                    self.isFav = true
+                    self.setupFunction()
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.favouriteButton.setTitle("Добавить в избранное", for: .normal)
+                    self.favouriteButton.backgroundColor = .systemGreen
+                    self.isFav = false
+                    self.setupFunction()
+                }
+            }
+        }
+    }
+    
     @objc private func addToFavourite() {
-        var favData = UserDefaults.standard.data(forKey: "favPhotos")
+        let favData = UserDefaults.standard.data(forKey: "favPhotos")
         guard let favData = favData else { return }
         var favArray = try! JSONDecoder().decode([Photos].self, from: favData)
         favArray.append(currentElement!)
         let favDataa = try! JSONEncoder().encode(favArray)
         UserDefaults.standard.set(favDataa, forKey: "favPhotos")
         NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
+        self.navigationController?.popViewController(animated:  true)
+    }
+    
+    @objc private func deleteFavourite() {
+        let favData = UserDefaults.standard.data(forKey: "favPhotos")
+        guard let favData = favData else { return }
+        var favArray = try! JSONDecoder().decode([Photos].self, from: favData)
+        favArray.removeAll { photos in
+            photos.id == currentElement?.id
+        }
+        let favDataa = try! JSONEncoder().encode(favArray)
+        UserDefaults.standard.set(favDataa, forKey: "favPhotos")
+        NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
+        self.navigationController?.popViewController(animated:  true)
     }
 }
