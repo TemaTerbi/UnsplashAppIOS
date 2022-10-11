@@ -29,8 +29,22 @@ final class MainPageView: UIViewController {
         setupTable()
         viewModel.getRandomPhotos()
         bindingsViewModel()
+        checkFavArray()
         
         UserDefaults.standard.set(1, forKey: "page")
+        NotificationCenter.default.post(name: NSNotification.Name("page"), object: nil)
+    }
+    
+    private func checkFavArray() {
+        let favData = UserDefaults.standard.data(forKey: "favPhotos")
+        guard let favData = favData else {
+            let photosArray: [Photos] = []
+            let photosArrayData = try! JSONEncoder().encode(photosArray)
+            UserDefaults.standard.set(photosArrayData, forKey: "favPhotos")
+            NotificationCenter.default.post(name: NSNotification.Name("favPhotos"), object: nil)
+            return
+        }
+        let favArray = try! JSONDecoder().decode([Photos].self, from: favData)
     }
     
     private func addSubView() {

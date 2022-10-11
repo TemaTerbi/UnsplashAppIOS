@@ -162,6 +162,7 @@ class DetailScreenView: UIViewController {
         button.layer.cornerRadius = 25
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(addToFavourite), for: .touchUpInside)
+        button.setTitle("Добавить в избранное", for: .normal)
         button.backgroundColor = .systemGreen
         return button
     }()
@@ -278,8 +279,6 @@ class DetailScreenView: UIViewController {
         let favArray = try! JSONDecoder().decode([Photos].self, from: favData)
         
         if favArray.isEmpty {
-            self.favouriteButton.setTitle("Добавить в избранное", for: .normal)
-            self.favouriteButton.backgroundColor = .systemGreen
             self.isFav = false
             self.setupFunction()
         } else {
